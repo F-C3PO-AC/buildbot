@@ -61,18 +61,18 @@ class BitbucketCloudEventHandler(object):
         content_type = request.getHeader(b'Content-Type')
         content_type = bytes2NativeString(content_type)
         if content_type.startswith('application/json'):
-            payload = json.loads(content)
+            # allow newline and carriage returns in strings
+            payload = json.loads(content, strict=False)
         else:
             raise ValueError('Unknown content type: {}'
                              .format(content_type))
-
         log.msg("Payload: {}".format(payload))
-
         return payload
 
     def handle_repo_push(self, payload):
         changes = []
-        project = payload['repository']['project']['name']
+        # repository->project->project is the project name
+        project = payload['repository']['project']['project']
         repo_url = payload['repository']['links']['self']['href']
         web_url = payload['repository']['links']['html']['href']
 
@@ -107,6 +107,8 @@ class BitbucketCloudEventHandler(object):
                 change['codebase'] = self._codebase(payload)
             elif self._codebase is not None:
                 change['codebase'] = self._codebase
+      
+            log.msg( "Processing change {change}".format(change=change) )
 
             changes.append(change)
 
@@ -142,7 +144,7 @@ class BitbucketCloudEventHandler(object):
         pr_number = int(payload['pullrequest']['id'])
         repo_url = payload['repository']['links']['self']['href']
         change = {
-            'revision': payload['pullrequest']['fromRef']['commit']['hash'],
+            'revision': payload['pullrequest']['source']['commit']['hash'],
             'revlink': payload['pullrequest']['link'],
             'repository': repo_url,
             'author': '{} <{}>'.format(payload['actor']['display_name'],
