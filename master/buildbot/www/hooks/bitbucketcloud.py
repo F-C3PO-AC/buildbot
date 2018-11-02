@@ -145,7 +145,8 @@ class BitbucketCloudEventHandler(object):
         repo_url = payload['repository']['links']['self']['href']
         change = {
             'revision': payload['pullrequest']['source']['commit']['hash'],
-            'revlink': payload['pullrequest']['link'],
+            'revlink':
+            payload['pullrequest']['source']['commit']['links']['self']['href'],
             'repository': repo_url,
             'author': '{} <{}>'.format(payload['actor']['display_name'],
                                        payload['actor']['username']),
@@ -153,7 +154,8 @@ class BitbucketCloudEventHandler(object):
             'branch': refname,
             'project': payload['repository']['project']['name'],
             'category': category,
-            'properties': {'pullrequesturl': payload['pullrequest']['link']}
+            'properties': {'pullrequesturl':
+                payload['pullrequest']['links']['self']['href']}
         }
 
         if callable(self._codebase):
