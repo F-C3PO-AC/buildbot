@@ -151,7 +151,7 @@ class BitbucketCloudEventHandler(object):
             'author': '{} <{}>'.format(payload['actor']['display_name'],
                                        payload['actor']['username']),
             'comments': 'Bitbucket Cloud Pull Request #{}'.format(pr_number),
-            'branch': refname,
+            'branch': payload['pullrequest']['source']['branch']['name'],
             'project': payload['repository']['project']['name'],
             'category': category,
             'properties': {'pullrequesturl':
